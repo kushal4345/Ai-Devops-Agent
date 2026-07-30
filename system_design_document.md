@@ -10,15 +10,16 @@
 ## 2. Core Technologies
 *What programming language and web framework are you using? Why? What are the tradeoffs?*
 **My Thoughts:**
-(Write your thoughts here...)
+We are using Node.js and Express. Node.js is widely used in industry for its non-blocking asynchronous I/O and vast ecosystem (npm). Express provides a minimalistic and unopinionated framework for rapidly developing APIs. 
+Tradeoffs: Express lacks built-in features compared to opinionated frameworks like NestJS (or Django/FastAPI in Python), requiring us to piece together libraries (for validation, ORM, etc.), but it gives us maximum flexibility.
 
 ## 3. Background Task Processing
-*How will you handle long-running tasks like cloning repos and running test suites? Why use Celery/Redis instead of built-in async features like FastAPI BackgroundTasks?*
+*How will you handle long-running tasks like cloning repos and running test suites? Why use BullMQ/Redis instead of built-in async features?*
 **My Thoughts:**
 (Write your thoughts here...)
 
 ## 4. AI Agent Orchestration
-*How will you structure the AI agents? Will you use LangChain, LangGraph, or custom code? How do the agents share state and communicate?*
+*How will you structure the AI agents? Will you use LangChain (JS), LangGraph (JS), or custom code? How do the agents share state and communicate?*
 **My Thoughts:**
 (Write your thoughts here...)
 
