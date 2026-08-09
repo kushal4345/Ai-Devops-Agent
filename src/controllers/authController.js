@@ -60,7 +60,14 @@ const githubCallback = async (req, res) => {
           username: profile.username,
           email: profile.email,
           avatarUrl: profile.avatarUrl,
+          githubAccessToken: githubAccessToken,
         },
+      });
+    } else {
+      // Update existing user with fresh GitHub token
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: { githubAccessToken: githubAccessToken }
       });
     }
 

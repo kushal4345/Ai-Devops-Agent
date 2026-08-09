@@ -4,6 +4,7 @@ const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
+const githubRoutes = require('./routes/github');
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use(cookieParser());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/github', githubRoutes);
 
 // Basic health check route
 app.get('/health', (req, res) => {
