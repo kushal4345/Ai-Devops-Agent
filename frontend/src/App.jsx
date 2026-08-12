@@ -1,7 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import HomePage from './pages/HomePage';
+import HomePage, { FeaturesPage, HowItWorksPage, PreviewPage } from './pages/HomePage';
 import Dashboard from './pages/Dashboard';
+import PublicLayout from './components/PublicLayout';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import './index.css';
 
@@ -13,7 +14,6 @@ const ProtectedRoute = ({ children }) => {
 };
 
 // Public route — accessible to everyone, including logged-in users
-// (we don't force-redirect authenticated users away from the home page)
 const PublicRoute = ({ children }) => {
   return children;
 };
@@ -23,7 +23,15 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/" element={<PublicRoute><HomePage /></PublicRoute>} />
+          {/* Public Pages with Shared Navbar */}
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<PublicRoute><HomePage /></PublicRoute>} />
+            <Route path="/features" element={<PublicRoute><FeaturesPage /></PublicRoute>} />
+            <Route path="/how-it-works" element={<PublicRoute><HowItWorksPage /></PublicRoute>} />
+            <Route path="/preview" element={<PublicRoute><PreviewPage /></PublicRoute>} />
+          </Route>
+
+          {/* Protected App Routes */}
           <Route 
             path="/dashboard" 
             element={

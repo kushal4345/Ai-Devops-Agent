@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   Activity, ArrowRight, GitBranch, GitPullRequest,
   Terminal, Zap, Shield, RefreshCw, CheckCircle2,
@@ -383,41 +383,6 @@ export default function HomePage() {
 
   return (
     <>
-      <div className="hp-bg" />
-
-      {/* ── NAVBAR ── */}
-      <nav className={`hp-nav ${scrolled ? 'scrolled' : ''}`}>
-        <div className="hp-nav-inner">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-            <a href="/" className="hp-nav-brand">
-              <Activity size={20} className="hp-nav-brand-icon" />
-              DevPilot
-            </a>
-            <div className="hp-nav-status">
-              <span className="hp-status-dot" />
-              AI Engine Online
-            </div>
-          </div>
-
-          <ul className="hp-nav-links">
-            <li><a href="#features">Features</a></li>
-            <li><a href="#how-it-works">How it works</a></li>
-            <li><a href="#preview">Preview</a></li>
-            <li><a href="#security">Security</a></li>
-          </ul>
-
-          <div className="hp-nav-actions">
-            <button className="hp-btn-primary" onClick={handleLogin}>
-              {isAuthenticated ? (
-                <>Go to Dashboard <ArrowRight size={14} /></>
-              ) : (
-                <>Get Started <ArrowRight size={14} /></>
-              )}
-            </button>
-          </div>
-        </div>
-      </nav>
-
       {/* ── HERO ── */}
       <section className="hp-hero">
         <div className="hp-hero-glow" />
@@ -431,21 +396,14 @@ export default function HomePage() {
         <div className="hp-hero-ctas">
           <button className="hp-hero-cta-primary" onClick={handleLogin}>
             {isAuthenticated ? (
-              <>
-                Go to Dashboard
-                <ArrowRight size={16} />
-              </>
+              <>Go to Dashboard <ArrowRight size={16} /></>
             ) : (
-              <>
-                <GithubSvg size={18} />
-                Connect GitHub
-                <ArrowRight size={16} />
-              </>
+              <><GithubSvg size={18} /> Connect GitHub <ArrowRight size={16} /></>
             )}
           </button>
-          <a href="#how-it-works" className="hp-hero-cta-secondary">
+          <Link to="/how-it-works" className="hp-hero-cta-secondary">
             See how it works <ChevronRight size={14} />
-          </a>
+          </Link>
         </div>
         <div className="hp-hero-trust">
           Works with GitHub · GitHub Actions · Docker · Node.js · TypeScript · Python · Java
@@ -453,8 +411,88 @@ export default function HomePage() {
         <AgentVisualization />
       </section>
 
+      {/* ── FINAL CTA ── */}
+      <section className="hp-cta-section">
+        <div className="hp-bg" style={{ opacity: 0.6 }} />
+        <div className="hp-cta-glow" />
+        <div className="hp-container" style={{ position: 'relative', zIndex: 1 }}>
+          <h2 className="hp-cta-title">Stop debugging.<br />Start shipping.</h2>
+          <p className="hp-cta-sub">Give your repository an autonomous engineering loop.</p>
+          <div className="hp-cta-btns">
+            <button className="hp-cta-primary" onClick={handleLogin}>
+              <GithubSvg size={18} />
+              Connect GitHub
+              <ArrowRight size={16} />
+            </button>
+            <Link to="/how-it-works" className="hp-btn-secondary">Explore the architecture</Link>
+          </div>
+        </div>
+      </section>
+
+      <Footer />
+    </>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="hp-footer">
+      <div className="hp-container">
+        <div className="hp-footer-grid">
+          <div>
+            <div className="hp-footer-brand-name">
+              <Activity size={18} />
+              DevPilot
+            </div>
+            <p className="hp-footer-tagline">An autonomous DevOps agent that diagnoses failures, generates fixes, and ships production-ready pull requests.</p>
+          </div>
+          <div>
+            <div className="hp-footer-col-title">Product</div>
+            <div className="hp-footer-links">
+              <Link to="/features">Features</Link>
+              <Link to="/how-it-works">How it works</Link>
+              <a href="#">Pricing</a>
+              <a href="#">Changelog</a>
+            </div>
+          </div>
+          <div>
+            <div className="hp-footer-col-title">Developers</div>
+            <div className="hp-footer-links">
+              <a href="#">Documentation</a>
+              <a href="#">GitHub</a>
+              <a href="#">API</a>
+              <a href="#">Architecture</a>
+            </div>
+          </div>
+          <div>
+            <div className="hp-footer-col-title">Company</div>
+            <div className="hp-footer-links">
+              <a href="#">About</a>
+              <a href="#">Contact</a>
+              <Link to="/how-it-works">Security</Link>
+              <a href="#">Privacy</a>
+            </div>
+          </div>
+        </div>
+        <div className="hp-footer-bottom">
+          <span>© 2026 DevPilot. Built for developers.</span>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem' }}>v0.1.0-alpha</span>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+export function HowItWorksPage() {
+  const workflowRef = useScrollReveal();
+  const archRef = useScrollReveal();
+  const testimonialsRef = useScrollReveal();
+  const securityRef = useScrollReveal();
+
+  return (
+    <div style={{ paddingTop: '80px' }}>
       {/* ── TERMINAL DEMO ── */}
-      <section className="hp-section" id="how-it-works">
+      <section className="hp-section">
         <div className="hp-container" style={{ textAlign: 'center' }}>
           <div className="hp-section-tag">Live Demo</div>
           <h2 className="hp-section-title">Watch the Agent Work</h2>
@@ -491,20 +529,125 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── DASHBOARD PREVIEW ── */}
-      <section className="hp-section" id="preview" style={{ paddingTop: 0 }}>
+      {/* ── ARCHITECTURE ── */}
+      <section className="hp-section" style={{ paddingTop: 0 }}>
         <div className="hp-container">
-          <div className="hp-section-tag">Product Preview</div>
-          <h2 className="hp-section-title" style={{ marginBottom: 12 }}>A Dashboard Built for Engineers</h2>
+          <div className="hp-section-tag">Architecture</div>
+          <h2 className="hp-section-title" style={{ marginBottom: 12 }}>One Agent. Your Entire Development Loop.</h2>
           <p className="hp-section-subtitle" style={{ marginBottom: 48 }}>
-            Every detail of the autonomous workflow is visible, inspectable, and controllable.
+            A clean, inspectable system that you stay in control of at every step.
           </p>
-          <DashboardPreview />
+          <div ref={archRef} className="hp-reveal hp-arch-diagram">
+            <div className="hp-arch-row">
+              <div className="hp-arch-node"><GithubSvg size={14} /> GitHub</div>
+            </div>
+            <div className="hp-arch-connector" />
+            <div className="hp-arch-row">
+              <div className="hp-arch-node primary">DevPilot API</div>
+            </div>
+            <div className="hp-arch-connector" />
+            <div className="hp-arch-row">
+              <div className="hp-arch-node primary">Agent Engine</div>
+            </div>
+            <div className="hp-arch-connector" />
+            <div className="hp-arch-row" style={{ gap: 32 }}>
+              <div className="hp-arch-node">Analyze</div>
+              <div className="hp-arch-arrow">—</div>
+              <div className="hp-arch-node">Test</div>
+              <div className="hp-arch-arrow">—</div>
+              <div className="hp-arch-node">Debug</div>
+            </div>
+            <div className="hp-arch-connector" />
+            <div className="hp-arch-row">
+              <div className="hp-arch-node primary">AI Fix Loop</div>
+            </div>
+            <div className="hp-arch-connector" />
+            <div className="hp-arch-row">
+              <div className="hp-arch-node">CI/CD Pipeline</div>
+            </div>
+            <div className="hp-arch-connector" />
+            <div className="hp-arch-row">
+              <div className="hp-arch-node success-node">✓ PASS — PR Created</div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* ── METRICS ── */}
+      {/* ── SECURITY ── */}
       <section className="hp-section" style={{ paddingTop: 0 }}>
+        <div className="hp-container">
+          <div className="hp-section-tag">Security</div>
+          <h2 className="hp-section-title" style={{ marginBottom: 48 }}>Your Code Stays Under Your Control</h2>
+          <div ref={securityRef} className="hp-reveal hp-security-grid">
+            <div className="hp-security-list">
+              {[
+                { title: 'OAuth Authentication', desc: 'Secure GitHub OAuth with scoped permissions only.' },
+                { title: 'Repository-Level Access', desc: 'Grant access per-repository, not your entire account.' },
+                { title: 'Secure Token Handling', desc: 'Tokens stored encrypted, never logged or exposed.' },
+                { title: 'Isolated Docker Execution', desc: 'All agent work runs inside ephemeral Docker containers.' },
+                { title: 'Branch-Based Changes', desc: 'Agent never modifies main/production branches directly.' },
+                { title: 'Full Audit Logs', desc: 'Every action the agent takes is logged and inspectable.' },
+              ].map((s, i) => (
+                <div key={i} className="hp-security-item">
+                  <CheckCircle2 size={16} className="hp-security-item-icon" />
+                  <div className="hp-security-item-text">
+                    <strong>{s.title}</strong>
+                    <span>{s.desc}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="hp-security-visual">
+              <div className="hp-shield">
+                <div className="hp-shield-bg" />
+                <Shield size={64} className="hp-shield-icon" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── TESTIMONIALS ── */}
+      <section className="hp-section" style={{ paddingTop: 0 }}>
+        <div className="hp-container">
+          <div className="hp-section-tag">Testimonials</div>
+          <h2 className="hp-section-title" style={{ marginBottom: 48 }}>Engineers Love It</h2>
+          <div ref={testimonialsRef} className="hp-reveal hp-testimonials-grid">
+            {[
+              { quote: 'Instead of spending an hour tracing a failing test, we let the agent investigate it while we focused on the feature.', name: 'A.K.', role: 'Senior Software Engineer', initials: 'AK' },
+              { quote: 'The PR-based workflow makes the AI feel like another engineer on the team rather than just another chatbot.', name: 'R.M.', role: 'Engineering Lead', initials: 'RM' },
+              { quote: "It doesn't just generate code. It validates the change through the actual CI pipeline before opening a PR.", name: 'S.P.', role: 'Platform Engineer', initials: 'SP' },
+            ].map((t, i) => (
+              <div key={i} className="hp-testimonial-card">
+                <p className="hp-testimonial-quote">{t.quote}</p>
+                <div className="hp-testimonial-author">
+                  <div className="hp-testimonial-avatar">{t.initials}</div>
+                  <div>
+                    <div className="hp-testimonial-name">{t.name}</div>
+                    <div className="hp-testimonial-role">{t.role} — placeholder testimonial</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <Footer />
+    </div>
+  );
+}
+
+export function FeaturesPage() {
+  const metricsRef = useScrollReveal();
+  const chartsRef = useScrollReveal();
+  const featuresRef = useScrollReveal();
+  const integrationsRef = useScrollReveal();
+
+  return (
+    <div style={{ paddingTop: '80px' }}>
+      {/* ── METRICS ── */}
+      <section className="hp-section">
         <div className="hp-container">
           <div ref={metricsRef} className="hp-reveal hp-metrics-grid">
             {[
@@ -576,7 +719,7 @@ export default function HomePage() {
       </section>
 
       {/* ── FEATURES ── */}
-      <section className="hp-section" id="features" style={{ paddingTop: 0 }}>
+      <section className="hp-section" style={{ paddingTop: 0 }}>
         <div className="hp-container">
           <div className="hp-section-tag">Features</div>
           <h2 className="hp-section-title" style={{ marginBottom: 12 }}>An Autonomous Engineering Loop</h2>
@@ -621,173 +764,27 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── ARCHITECTURE ── */}
-      <section className="hp-section" style={{ paddingTop: 0 }}>
+      <Footer />
+    </div>
+  );
+}
+
+export function PreviewPage() {
+  return (
+    <div style={{ paddingTop: '80px' }}>
+      {/* ── DASHBOARD PREVIEW ── */}
+      <section className="hp-section">
         <div className="hp-container">
-          <div className="hp-section-tag">Architecture</div>
-          <h2 className="hp-section-title" style={{ marginBottom: 12 }}>One Agent. Your Entire Development Loop.</h2>
+          <div className="hp-section-tag">Product Preview</div>
+          <h2 className="hp-section-title" style={{ marginBottom: 12 }}>A Dashboard Built for Engineers</h2>
           <p className="hp-section-subtitle" style={{ marginBottom: 48 }}>
-            A clean, inspectable system that you stay in control of at every step.
+            Every detail of the autonomous workflow is visible, inspectable, and controllable.
           </p>
-          <div ref={archRef} className="hp-reveal hp-arch-diagram">
-            <div className="hp-arch-row">
-              <div className="hp-arch-node"><GithubSvg size={14} /> GitHub</div>
-            </div>
-            <div className="hp-arch-connector" />
-            <div className="hp-arch-row">
-              <div className="hp-arch-node primary">DevPilot API</div>
-            </div>
-            <div className="hp-arch-connector" />
-            <div className="hp-arch-row">
-              <div className="hp-arch-node primary">Agent Engine</div>
-            </div>
-            <div className="hp-arch-connector" />
-            <div className="hp-arch-row" style={{ gap: 32 }}>
-              <div className="hp-arch-node">Analyze</div>
-              <div className="hp-arch-arrow">—</div>
-              <div className="hp-arch-node">Test</div>
-              <div className="hp-arch-arrow">—</div>
-              <div className="hp-arch-node">Debug</div>
-            </div>
-            <div className="hp-arch-connector" />
-            <div className="hp-arch-row">
-              <div className="hp-arch-node primary">AI Fix Loop</div>
-            </div>
-            <div className="hp-arch-connector" />
-            <div className="hp-arch-row">
-              <div className="hp-arch-node">CI/CD Pipeline</div>
-            </div>
-            <div className="hp-arch-connector" />
-            <div className="hp-arch-row">
-              <div className="hp-arch-node success-node">✓ PASS — PR Created</div>
-            </div>
-          </div>
+          <DashboardPreview />
         </div>
       </section>
-
-      {/* ── TESTIMONIALS ── */}
-      <section className="hp-section" style={{ paddingTop: 0 }}>
-        <div className="hp-container">
-          <div className="hp-section-tag">Testimonials</div>
-          <h2 className="hp-section-title" style={{ marginBottom: 48 }}>Engineers Love It</h2>
-          <div ref={testimonialsRef} className="hp-reveal hp-testimonials-grid">
-            {[
-              { quote: 'Instead of spending an hour tracing a failing test, we let the agent investigate it while we focused on the feature.', name: 'A.K.', role: 'Senior Software Engineer', initials: 'AK' },
-              { quote: 'The PR-based workflow makes the AI feel like another engineer on the team rather than just another chatbot.', name: 'R.M.', role: 'Engineering Lead', initials: 'RM' },
-              { quote: "It doesn't just generate code. It validates the change through the actual CI pipeline before opening a PR.", name: 'S.P.', role: 'Platform Engineer', initials: 'SP' },
-            ].map((t, i) => (
-              <div key={i} className="hp-testimonial-card">
-                <p className="hp-testimonial-quote">{t.quote}</p>
-                <div className="hp-testimonial-author">
-                  <div className="hp-testimonial-avatar">{t.initials}</div>
-                  <div>
-                    <div className="hp-testimonial-name">{t.name}</div>
-                    <div className="hp-testimonial-role">{t.role} — placeholder testimonial</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── SECURITY ── */}
-      <section className="hp-section" id="security" style={{ paddingTop: 0 }}>
-        <div className="hp-container">
-          <div className="hp-section-tag">Security</div>
-          <h2 className="hp-section-title" style={{ marginBottom: 48 }}>Your Code Stays Under Your Control</h2>
-          <div ref={securityRef} className="hp-reveal hp-security-grid">
-            <div className="hp-security-list">
-              {[
-                { title: 'OAuth Authentication', desc: 'Secure GitHub OAuth with scoped permissions only.' },
-                { title: 'Repository-Level Access', desc: 'Grant access per-repository, not your entire account.' },
-                { title: 'Secure Token Handling', desc: 'Tokens stored encrypted, never logged or exposed.' },
-                { title: 'Isolated Docker Execution', desc: 'All agent work runs inside ephemeral Docker containers.' },
-                { title: 'Branch-Based Changes', desc: 'Agent never modifies main/production branches directly.' },
-                { title: 'Full Audit Logs', desc: 'Every action the agent takes is logged and inspectable.' },
-              ].map((s, i) => (
-                <div key={i} className="hp-security-item">
-                  <CheckCircle2 size={16} className="hp-security-item-icon" />
-                  <div className="hp-security-item-text">
-                    <strong>{s.title}</strong>
-                    <span>{s.desc}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="hp-security-visual">
-              <div className="hp-shield">
-                <div className="hp-shield-bg" />
-                <Shield size={64} className="hp-shield-icon" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── FINAL CTA ── */}
-      <section className="hp-cta-section">
-        <div className="hp-bg" style={{ opacity: 0.6 }} />
-        <div className="hp-cta-glow" />
-        <div className="hp-container" style={{ position: 'relative', zIndex: 1 }}>
-          <h2 className="hp-cta-title">Stop debugging.<br />Start shipping.</h2>
-          <p className="hp-cta-sub">Give your repository an autonomous engineering loop.</p>
-          <div className="hp-cta-btns">
-            <button className="hp-cta-primary" onClick={handleLogin}>
-              <GithubSvg size={18} />
-              Connect GitHub
-              <ArrowRight size={16} />
-            </button>
-            <a href="#how-it-works" className="hp-btn-secondary">Explore the architecture</a>
-          </div>
-        </div>
-      </section>
-
-      {/* ── FOOTER ── */}
-      <footer className="hp-footer">
-        <div className="hp-container">
-          <div className="hp-footer-grid">
-            <div>
-              <div className="hp-footer-brand-name">
-                <Activity size={18} />
-                DevPilot
-              </div>
-              <p className="hp-footer-tagline">An autonomous DevOps agent that diagnoses failures, generates fixes, and ships production-ready pull requests.</p>
-            </div>
-            <div>
-              <div className="hp-footer-col-title">Product</div>
-              <div className="hp-footer-links">
-                <a href="#">Features</a>
-                <a href="#">How it works</a>
-                <a href="#">Pricing</a>
-                <a href="#">Changelog</a>
-              </div>
-            </div>
-            <div>
-              <div className="hp-footer-col-title">Developers</div>
-              <div className="hp-footer-links">
-                <a href="#">Documentation</a>
-                <a href="#">GitHub</a>
-                <a href="#">API</a>
-                <a href="#">Architecture</a>
-              </div>
-            </div>
-            <div>
-              <div className="hp-footer-col-title">Company</div>
-              <div className="hp-footer-links">
-                <a href="#">About</a>
-                <a href="#">Contact</a>
-                <a href="#security">Security</a>
-                <a href="#">Privacy</a>
-              </div>
-            </div>
-          </div>
-          <div className="hp-footer-bottom">
-            <span>© 2026 DevPilot. Built for developers.</span>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem' }}>v0.1.0-alpha</span>
-          </div>
-        </div>
-      </footer>
-    </>
+      
+      <Footer />
+    </div>
   );
 }
