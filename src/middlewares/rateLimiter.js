@@ -40,8 +40,7 @@ const userApiLimiter = rateLimit({
 
   // 4. Look at the logged-in User's ID instead of the IP.
   keyGenerator: (req) => {
-    // We assume req.user is populated by your auth middleware
-    if (req.user) return req.user.id;
+    if (req.user) return req.user.userId;
     // Fallback if user is not logged in, using a safe format to avoid IPv6 warnings
     return req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
   }

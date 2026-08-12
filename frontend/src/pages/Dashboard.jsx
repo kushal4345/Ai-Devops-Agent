@@ -96,9 +96,17 @@ export default function Dashboard() {
     fetchRepos();
   }, [page, debouncedSearch]);
 
-  const handleLoadMore = () => {
-    if (!loadingMore && hasMore) setPage(p => p + 1);
-  };
+  const observer = useRef();
+  const lastRepoElementRef = useCallback(node => {
+    if (loading || loadingMore) return;
+    if (observer.current) observer.current.disconnect();
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore) {
+        setPage(p => p + 1);
+      }
+    });
+    if (node) observer.current.observe(node);
+  }, [loading, loadingMore, hasMore]);
 
   const handleImport = async (repo) => {
     try {
@@ -164,8 +172,14 @@ export default function Dashboard() {
             </div>
           ) : (
             <>
-              {repos.map(repo => (
-                <div key={repo.id} className="repo-item">
+              {repos.map((repo, index) => {
+                const isLast = index === repos.length - 1;
+                return (
+                <div 
+                  key={repo.id} 
+                  className="repo-item"
+                  ref={isLast ? lastRepoElementRef : null}
+                >
                   <div className="repo-item-left">
                     <div className="repo-item-icon-wrap">
                       {repo.private ? <Lock size={16} /> : <BookOpen size={16} />}
@@ -206,18 +220,16 @@ export default function Dashboard() {
                     </button>
                   </div>
                 </div>
-              ))}
+                );
+              })}
 
               {/* Load More */}
-              {hasMore && (
+              {loadingMore && (
                 <div className="load-more-wrapper">
-                  <button className="load-more-btn" onClick={handleLoadMore} disabled={loadingMore}>
-                    {loadingMore ? (
-                      <><Loader size={14} className="spinner" /> Loading...</>
-                    ) : (
-                      <>Load more</>
-                    )}
-                  </button>
+                  <div className="load-more-spinner">
+                    <Loader size={20} className="spinner" />
+                    <span>Loading more...</span>
+                  </div>
                 </div>
               )}
             </>

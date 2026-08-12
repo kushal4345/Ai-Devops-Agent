@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 // Called when the user selects a repository and clicks "Start Analysis"
 const createJob = async (req, res) => {
   const { githubRepoId, name, fullName, defaultBranch, isPrivate, htmlUrl, branch } = req.body;
-  const userId = req.user.id; // Comes from verifyToken middleware
+  const userId = req.user.userId; // Comes from verifyToken middleware
 
   // --- Validation ---
   if (!githubRepoId || !name || !fullName || !branch) {
@@ -78,7 +78,7 @@ const createJob = async (req, res) => {
 // Called by the frontend to check the current status of a job
 const getJobStatus = async (req, res) => {
   const { jobId } = req.params;
-  const userId = req.user.id;
+  const userId = req.user.userId;
 
   try {
     const job = await prisma.job.findFirst({
@@ -103,7 +103,7 @@ const getJobStatus = async (req, res) => {
 // GET /api/jobs
 // Get all jobs for the logged-in user
 const getUserJobs = async (req, res) => {
-  const userId = req.user.id;
+  const userId = req.user.userId;
 
   try {
     const jobs = await prisma.job.findMany({
