@@ -1,4 +1,7 @@
 const app = require('./app');
+require('./workers/emailWorker'); // Start email background worker
+require('./workers/jobWorker');   // Start job analysis background worker
+
 
 const PORT = process.env.PORT || 3000;
 

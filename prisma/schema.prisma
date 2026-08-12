@@ -7,14 +7,195 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// =====================================================================
+// TABLE 1: USERS
+// The person who logged in via GitHub.
+// Everything in the system belongs to a User.
+// =====================================================================
 model User {
-  id           String   @id @default(uuid())
-  githubId     String   @unique
-  username     String
-  email        String?  @unique
+  id                String       @id @default(uuid())
+  githubId          String       @unique
+  username          String
+  email             String?      @unique
   avatarUrl         String?
   githubAccessToken String?
   refreshToken      String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  // Relations
+  repositories      Repository[]
+  jobs              Job[]
+}
+
+// =====================================================================
+// TABLE 2: REPOSITORIES
+// Repositories the user has connected to our app.
+// We store a local copy of basic repo info so we don't have to 
+// call the GitHub API every time we need the repo name or branch.
+// =====================================================================
+model Repository {
+  id             String   @id @default(uuid())
+  userId         String
+  githubRepoId   Int      @unique     // GitHub's own numeric ID for the repo
+  name           String               // e.g. "my-app"
+  fullName       String               // e.g. "johndoe/my-app"
+  defaultBranch  String   @default("main")
+  isPrivate      Boolean  @default(false)
+  htmlUrl        String               // e.g. "https://github.com/johndoe/my-app"
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobs           Job[]
+}
+
+// =====================================================================
+// TABLE 3: JOBS
+// Created when a user clicks "Start Analysis" on a repository.
+// One Job = one full analysis task (may have multiple attempts inside it).
+// =====================================================================
+enum JobStatus {
+  QUEUED
+  CLONING
+  ANALYZING
+  TESTING
+  FIXING
+  VERIFYING
+  CI_RUNNING
+  SUCCESS
+  FAILED
+  CANCELLED
+}
+
+model Job {
+  id             String     @id @default(uuid())
+  userId         String
+  repositoryId   String
+  branch         String               // Which branch to analyse e.g. "main"
+  status         JobStatus  @default(QUEUED)
+  attemptCount   Int        @default(0) // How many fix-cycles have been tried
+  createdAt      DateTime   @default(now())
+  startedAt      DateTime?            // When the worker first picked it up
+  completedAt    DateTime?            // When it finally succeeded or gave up
+
+  // Relations
+  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  repository     Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  jobAttempts    JobAttempt[]
+  ciRuns         CIRun[]
+}
+
+// =====================================================================
+// TABLE 4: JOB ATTEMPTS
+// One attempt = one full "run tests → AI fixes → run tests again" cycle.
+// A single Job can have many attempts (e.g. 3 retries before success).
+// Separating attempts from jobs lets you track exactly what happened 
+// on each cycle, which is crucial for the AI-agent loop.
+// =====================================================================
+enum AttemptStatus {
+  RUNNING
+  SUCCESS
+  FAILED
+}
+
+model JobAttempt {
+  id            String        @id @default(uuid())
+  jobId         String
+  attemptNumber Int                    // 1, 2, 3 ... 
+  status        AttemptStatus
+  failureType   String?                // e.g. "TEST_FAILURE", "TIMEOUT"
+  errorSummary  String?                // Short human-readable summary of what failed
+  startedAt     DateTime      @default(now())
+  completedAt   DateTime?
+
+  // Relations
+  job           Job           @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  testRuns      TestRun[]
+  aiFixes       AIFix[]
+}
+
+// =====================================================================
+// TABLE 5: TEST RUNS
+// Stores the structured result of running the test suite inside Docker.
+// e.g. "50 tests: 46 passed, 3 failed, 1 skipped"
+// =====================================================================
+enum TestRunStatus {
+  PASSED
+  FAILED
+  ERROR
+}
+
+model TestRun {
+  id             String        @id @default(uuid())
+  jobAttemptId   String
+  totalTests     Int           @default(0)
+  passedTests    Int           @default(0)
+  failedTests    Int           @default(0)
+  skippedTests   Int           @default(0)
+  durationMs     Int?                   // How long the test suite took in milliseconds
+  status         TestRunStatus
+  createdAt      DateTime      @default(now())
+
+  // Relations
+  jobAttempt     JobAttempt    @relation(fields: [jobAttemptId], references: [id], onDelete: Cascade)
+}
+
+// =====================================================================
+// TABLE 6: AI FIXES
+// Records what file the AI changed, why, and whether it was applied.
+// This answers the interview question: "How do you know what your AI did?"
+// =====================================================================
+enum AIFixStatus {
+  APPLIED
+  FAILED
+  REVERTED
+}
+
+model AIFix {
+  id           String      @id @default(uuid())
+  jobAttemptId String
+  filePath     String                  // e.g. "src/services/userService.js"
+  description  String                  // e.g. "Added null check before accessing user.id"
+  status       AIFixStatus
+  commitSha    String?                 // The Git commit SHA after the fix was pushed
+  createdAt    DateTime    @default(now())
+
+  // Relations
+  jobAttempt   JobAttempt  @relation(fields: [jobAttemptId], references: [id], onDelete: Cascade)
+}
+
+// =====================================================================
+// TABLE 7: CI RUNS
+// Tracks GitHub Actions / CI pipeline runs that are triggered after
+// the AI pushes a fix. Separate from test runs because these run 
+// on GitHub's infrastructure, not in your local Docker container.
+// =====================================================================
+enum CIRunStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum CIRunConclusion {
+  SUCCESS
+  FAILURE
+  CANCELLED
+  SKIPPED
+}
+
+model CIRun {
+  id             String           @id @default(uuid())
+  jobId          String
+  githubRunId    BigInt           @unique  // GitHub's own numeric ID for the Actions run
+  workflowName   String                    // e.g. "CI"
+  status         CIRunStatus
+  conclusion     CIRunConclusion?          // Only set when status = COMPLETED
+  branch         String
+  startedAt      DateTime?
+  completedAt    DateTime?
+
+  // Relations
+  job            Job              @relation(fields: [jobId], references: [id], onDelete: Cascade)
 }

@@ -80,9 +80,9 @@ const githubCallback = async (req, res) => {
       data: { refreshToken },
     });
 
-    // 6. Send Welcome Email (if new user and they have an email)
+    // 6. Send Welcome Email via Message Queue (if new user and they have an email)
     if (isNewUser && user.email) {
-      await emailService.sendWelcomeEmail(user.email, user.username);
+      await emailService.queueWelcomeEmail(user.email, user.username);
     }
 
     // 7. Set Refresh Token as HttpOnly Cookie

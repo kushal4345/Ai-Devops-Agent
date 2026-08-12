@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Activity, Search, BookOpen, Lock, Globe, ArrowRight, LogOut, Loader, Package } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { getRepositories } from '../api/github';
+import { createJob } from '../api/jobs';
 import './Dashboard.css';
 
 const LANG_COLORS = {
@@ -55,6 +56,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
+  const [startingJobId, setStartingJobId] = useState(null);
 
   const searchTimer = useRef(null);
 
@@ -98,10 +100,18 @@ export default function Dashboard() {
     if (!loadingMore && hasMore) setPage(p => p + 1);
   };
 
-  const handleImport = (repo) => {
-    console.log('Importing repo:', repo.fullName);
-    // TODO: Navigate to job creation page with this repo pre-selected
-    alert(`Starting analysis for ${repo.fullName}...`);
+  const handleImport = async (repo) => {
+    try {
+      setStartingJobId(repo.id);
+      const data = await createJob(repo, repo.defaultBranch || 'main');
+      alert(`Success! Job created with ID: ${data.jobId}`);
+      // Future step: Navigate to a dedicated Job Status page here
+    } catch (err) {
+      console.error('Failed to start job:', err);
+      alert('Failed to start analysis. Please try again.');
+    } finally {
+      setStartingJobId(null);
+    }
   };
 
   return (
@@ -186,9 +196,13 @@ export default function Dashboard() {
                     <button
                       className="repo-import-btn"
                       onClick={() => handleImport(repo)}
+                      disabled={startingJobId === repo.id}
                     >
-                      Analyze
-                      <ArrowRight size={14} />
+                      {startingJobId === repo.id ? (
+                        <><Loader size={14} className="spinner" /> Starting...</>
+                      ) : (
+                        <>Analyze <ArrowRight size={14} /></>
+                      )}
                     </button>
                   </div>
                 </div>

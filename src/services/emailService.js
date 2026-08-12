@@ -119,6 +119,14 @@ const sendWelcomeEmail = async (email, username) => {
   }
 };
 
+const { emailQueue } = require('../workers/emailQueue');
+
+const queueWelcomeEmail = async (email, username) => {
+  console.log("📥 Queuing welcome email to Redis...");
+  await emailQueue.add('send-welcome-email', { email, username });
+};
+
 module.exports = {
-  sendWelcomeEmail
+  sendWelcomeEmail,
+  queueWelcomeEmail
 };

@@ -5,6 +5,7 @@ require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
 const githubRoutes = require('./routes/github');
+const jobRoutes = require('./routes/jobs');
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use(cookieParser());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/github', githubRoutes);
+app.use('/api/jobs', jobRoutes);
 
 // Basic health check route
 app.get('/health', (req, res) => {
