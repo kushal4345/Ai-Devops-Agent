@@ -25,7 +25,7 @@ const getRepositories = async (req, res) => {
   try {
     const { userId } = req.user;
     const page = parseInt(req.query.page) || 1;
-    const perPage = 7; // Max 30 per page for pagination like Vercel
+    const perPage = 5; // 5 repos per page for infinite scroll
 
     const user = await prisma.user.findUnique({
       where: { id: userId },

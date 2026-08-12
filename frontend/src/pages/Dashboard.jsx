@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Activity, Search, BookOpen, Lock, Globe, ArrowRight, LogOut, Loader, Package } from 'lucide-react';
+import { Activity, Search, BookOpen, Lock, ArrowRight, ArrowLeft, LogOut, Loader, Package } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getRepositories } from '../api/github';
 import { createJob } from '../api/jobs';
@@ -8,16 +9,16 @@ import './Dashboard.css';
 const LANG_COLORS = {
   JavaScript: '#f1e05a',
   TypeScript: '#3178c6',
-  Python: '#3572A5',
-  Go: '#00ADD8',
-  Rust: '#dea584',
-  Java: '#b07219',
-  Ruby: '#701516',
-  PHP: '#4F5D95',
-  'C++': '#f34b7d',
-  'C#': '#178600',
-  Swift: '#F05138',
-  Kotlin: '#A97BFF',
+  Python:     '#3572A5',
+  Go:         '#00ADD8',
+  Rust:       '#dea584',
+  Java:       '#b07219',
+  Ruby:       '#701516',
+  PHP:        '#4F5D95',
+  'C++':      '#f34b7d',
+  'C#':       '#178600',
+  Swift:      '#F05138',
+  Kotlin:     '#A97BFF',
 };
 
 const RepoSkeleton = () => (
@@ -36,29 +37,32 @@ const RepoSkeleton = () => (
 
 const formatUpdated = (dateStr) => {
   const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
+  const mins  = Math.floor(diff / 60000);
   const hours = Math.floor(mins / 60);
-  const days = Math.floor(hours / 24);
-
-  if (mins < 60) return `${mins}m ago`;
+  const days  = Math.floor(hours / 24);
+  if (mins  < 60) return `${mins}m ago`;
   if (hours < 24) return `${hours}h ago`;
-  if (days < 30) return `${days}d ago`;
+  if (days  < 30) return `${days}d ago`;
   return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 };
 
 export default function Dashboard() {
   const { logout } = useAuth();
-  const [repos, setRepos] = useState([]);
-  const [search, setSearch] = useState('');
+  const navigate = useNavigate();
+  const [repos, setRepos]               = useState([]);
+  const [search, setSearch]             = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [error, setError] = useState(null);
+  const [page, setPage]                 = useState(1);
+  const [hasMore, setHasMore]           = useState(true);
+  const [loading, setLoading]           = useState(true);
+  const [loadingMore, setLoadingMore]   = useState(false);
+  const [error, setError]               = useState(null);
   const [startingJobId, setStartingJobId] = useState(null);
 
-  const searchTimer = useRef(null);
+  // Ref for the scrollable container — the IntersectionObserver watches inside this
+  const scrollContainerRef = useRef(null);
+  const searchTimer         = useRef(null);
+  const observer            = useRef(null);
 
   // Debounce search input
   useEffect(() => {
@@ -82,8 +86,9 @@ export default function Dashboard() {
       try {
         const data = await getRepositories({ page, search: debouncedSearch });
         setRepos(prev => page === 1 ? data : [...prev, ...data]);
-        // Backend returns 30 per page; if fewer, we've reached the end
-        if (data.length < 30) setHasMore(false);
+        // Backend sends 5 per page; fewer means we're at the end
+        if (data.length < 5) setHasMore(false);
+        else setHasMore(true);
       } catch (err) {
         setError('Failed to fetch repositories. Make sure you are connected to the backend.');
         console.error(err);
@@ -96,15 +101,24 @@ export default function Dashboard() {
     fetchRepos();
   }, [page, debouncedSearch]);
 
-  const observer = useRef();
+  // Attach IntersectionObserver to the last repo card, rooted to the scroll container
   const lastRepoElementRef = useCallback(node => {
     if (loading || loadingMore) return;
     if (observer.current) observer.current.disconnect();
-    observer.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && hasMore) {
-        setPage(p => p + 1);
+
+    observer.current = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && hasMore) {
+          setPage(p => p + 1);
+        }
+      },
+      {
+        root:       scrollContainerRef.current, // watch INSIDE the scroll box
+        rootMargin: '0px 0px 80px 0px',         // fire 80px before the bottom
+        threshold:  0,
       }
-    });
+    );
+
     if (node) observer.current.observe(node);
   }, [loading, loadingMore, hasMore]);
 
@@ -112,8 +126,7 @@ export default function Dashboard() {
     try {
       setStartingJobId(repo.id);
       const data = await createJob(repo, repo.defaultBranch || 'main');
-      alert(`Success! Job created with ID: ${data.jobId}`);
-      // Future step: Navigate to a dedicated Job Status page here
+      alert(`✅ Job created! ID: ${data.jobId}`);
     } catch (err) {
       console.error('Failed to start job:', err);
       alert('Failed to start analysis. Please try again.');
@@ -126,10 +139,16 @@ export default function Dashboard() {
     <div className="dashboard-wrapper">
       {/* Sticky Navbar */}
       <nav className="dash-nav">
+        {/* Back arrow — left side */}
+        <button className="dash-back-btn" onClick={() => navigate('/')} title="Back to Home">
+          <ArrowLeft size={18} />
+        </button>
+
         <div className="dash-nav-brand">
           <Activity className="dash-nav-logo" size={20} />
           <span>Antigravity</span>
         </div>
+
         <div className="dash-nav-right">
           <button className="dash-logout-btn" onClick={logout}>
             <LogOut size={15} />
@@ -159,81 +178,93 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* Repo List */}
-        <div className="repo-list">
-          {loading ? (
-            <RepoSkeleton />
-          ) : error ? (
-            <div className="repo-error">{error}</div>
-          ) : repos.length === 0 ? (
-            <div className="repo-empty">
-              <Package size={40} className="repo-empty-icon" />
-              <p>No repositories found{search ? ` for "${search}"` : ''}.</p>
-            </div>
-          ) : (
-            <>
-              {repos.map((repo, index) => {
-                const isLast = index === repos.length - 1;
-                return (
-                <div 
-                  key={repo.id} 
-                  className="repo-item"
-                  ref={isLast ? lastRepoElementRef : null}
-                >
-                  <div className="repo-item-left">
-                    <div className="repo-item-icon-wrap">
-                      {repo.private ? <Lock size={16} /> : <BookOpen size={16} />}
-                    </div>
-                    <div className="repo-item-info">
-                      <div className="repo-item-name">{repo.fullName}</div>
-                      <div className="repo-item-desc">{repo.description || 'No description'}</div>
-                    </div>
-                  </div>
-
-                  <div className="repo-item-right">
-                    <div className="repo-meta">
-                      {repo.language && (
-                        <span className="repo-lang">
-                          <span
-                            className="lang-dot"
-                            style={{ backgroundColor: LANG_COLORS[repo.language] || '#888' }}
-                          />
-                          {repo.language}
-                        </span>
-                      )}
-                      <span>{formatUpdated(repo.updatedAt)}</span>
-                      <span className={`repo-badge ${repo.private ? 'private' : 'public'}`}>
-                        {repo.private ? 'Private' : 'Public'}
-                      </span>
-                    </div>
-
-                    <button
-                      className="repo-import-btn"
-                      onClick={() => handleImport(repo)}
-                      disabled={startingJobId === repo.id}
+        {/* Fixed-height scrollable repo list */}
+        <div className="repo-list-outer">
+          <div className="repo-list" ref={scrollContainerRef}>
+            {loading ? (
+              <RepoSkeleton />
+            ) : error ? (
+              <div className="repo-error">{error}</div>
+            ) : repos.length === 0 ? (
+              <div className="repo-empty">
+                <Package size={40} className="repo-empty-icon" />
+                <p>No repositories found{search ? ` for "${search}"` : ''}.</p>
+              </div>
+            ) : (
+              <>
+                {repos.map((repo, index) => {
+                  const isLast = index === repos.length - 1;
+                  return (
+                    <div
+                      key={repo.id}
+                      className="repo-item"
+                      ref={isLast ? lastRepoElementRef : null}
                     >
-                      {startingJobId === repo.id ? (
-                        <><Loader size={14} className="spinner" /> Starting...</>
-                      ) : (
-                        <>Analyze <ArrowRight size={14} /></>
-                      )}
-                    </button>
-                  </div>
-                </div>
-                );
-              })}
+                      <div className="repo-item-left">
+                        <div className="repo-item-icon-wrap">
+                          {repo.private ? <Lock size={16} /> : <BookOpen size={16} />}
+                        </div>
+                        <div className="repo-item-info">
+                          <div className="repo-item-name">
+                            <span className="repo-owner">{repo.fullName.split('/')[0]}/</span>
+                            <span>{repo.fullName.split('/')[1]}</span>
+                          </div>
+                          <div className="repo-item-desc">{repo.description || 'No description provided'}</div>
+                        </div>
+                      </div>
 
-              {/* Load More */}
-              {loadingMore && (
-                <div className="load-more-wrapper">
-                  <div className="load-more-spinner">
-                    <Loader size={20} className="spinner" />
-                    <span>Loading more...</span>
+                      <div className="repo-item-right">
+                        <div className="repo-meta">
+                          {repo.language && (
+                            <span className="repo-lang">
+                              <span
+                                className="lang-dot"
+                                style={{ backgroundColor: LANG_COLORS[repo.language] || '#888' }}
+                              />
+                              {repo.language}
+                            </span>
+                          )}
+                          <span>{formatUpdated(repo.updatedAt)}</span>
+                          <span className={`repo-badge ${repo.private ? 'private' : 'public'}`}>
+                            {repo.private ? 'Private' : 'Public'}
+                          </span>
+                        </div>
+
+                        <button
+                          className="repo-import-btn"
+                          onClick={() => handleImport(repo)}
+                          disabled={startingJobId === repo.id}
+                        >
+                          {startingJobId === repo.id ? (
+                            <><Loader size={14} className="spinner" /> Starting...</>
+                          ) : (
+                            <>Analyze <ArrowRight size={14} /></>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Spinner at the bottom while loading next page */}
+                {loadingMore && (
+                  <div className="load-more-wrapper">
+                    <div className="load-more-spinner">
+                      <Loader size={18} className="spinner" />
+                      <span>Loading more...</span>
+                    </div>
                   </div>
-                </div>
-              )}
-            </>
-          )}
+                )}
+
+                {/* End of list message */}
+                {!hasMore && repos.length > 0 && (
+                  <div className="repo-end-message">
+                    All repositories loaded &mdash; {repos.length} total
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </main>
     </div>

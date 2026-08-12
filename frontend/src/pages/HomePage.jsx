@@ -373,11 +373,13 @@ export default function HomePage() {
   const chartsRef = useScrollReveal();
   const archRef = useScrollReveal();
 
-  useEffect(() => {
-    if (isAuthenticated) navigate('/dashboard');
-  }, [isAuthenticated, navigate]);
-
-  const handleLogin = () => login();
+  const handleLogin = () => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    } else {
+      login();
+    }
+  };
 
   return (
     <>
@@ -406,7 +408,11 @@ export default function HomePage() {
 
           <div className="hp-nav-actions">
             <button className="hp-btn-primary" onClick={handleLogin}>
-              Get Started <ArrowRight size={14} />
+              {isAuthenticated ? (
+                <>Go to Dashboard <ArrowRight size={14} /></>
+              ) : (
+                <>Get Started <ArrowRight size={14} /></>
+              )}
             </button>
           </div>
         </div>
@@ -424,9 +430,18 @@ export default function HomePage() {
         </p>
         <div className="hp-hero-ctas">
           <button className="hp-hero-cta-primary" onClick={handleLogin}>
-            <GithubSvg size={18} />
-            Connect GitHub
-            <ArrowRight size={16} />
+            {isAuthenticated ? (
+              <>
+                Go to Dashboard
+                <ArrowRight size={16} />
+              </>
+            ) : (
+              <>
+                <GithubSvg size={18} />
+                Connect GitHub
+                <ArrowRight size={16} />
+              </>
+            )}
           </button>
           <a href="#how-it-works" className="hp-hero-cta-secondary">
             See how it works <ChevronRight size={14} />

@@ -24,6 +24,9 @@ export const AuthProvider = ({ children }) => {
         // Remove token from URL for security
         window.history.replaceState({}, document.title, window.location.pathname);
         setIsLoading(false);
+
+        // Redirect to dashboard now that login is successful
+        window.location.href = '/dashboard';
         return;
       }
 
