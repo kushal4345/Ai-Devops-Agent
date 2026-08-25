@@ -21,6 +21,7 @@
     "bullmq": "^5.81.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
+    "dockerode": "^5.0.1",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.6.2",
@@ -31,6 +32,7 @@
     "prisma": "^5.22.0",
     "rate-limit-redis": "^6.0.1",
     "resend": "^6.18.1",
+    "simple-git": "^3.36.0",
     "winston": "^3.19.0"
   },
   "devDependencies": {
