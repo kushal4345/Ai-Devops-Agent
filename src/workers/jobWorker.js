@@ -5,7 +5,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const os = require('os');
 const simpleGit = require('simple-git');
-const Docker = require('dockerode');
+const Docker = require('dockerode')
 
 const prisma = new PrismaClient();
 const docker = new Docker(); // Connects to local Docker Desktop by default
@@ -29,12 +29,12 @@ const jobWorker = new Worker('JobQueue', async (job) => {
     // --- 1. Clone the repository using simple-git ---
     const baseDir = os.tmpdir();
     const repoPath = path.join(baseDir, 'autoops-jobs', `job-${jobId}`);
-    
+
     // Create directory recursively
     await fs.mkdir(repoPath, { recursive: true });
-    
+
     const git = simpleGit();
-    
+
     // Fetch repository URL from DB (Assumes a Repository model with 'url' exists)
     const repo = await prisma.repository.findUnique({ where: { id: repositoryId } });
     const cloneUrl = repo ? repo.url : `https://github.com/placeholder-url.git`; // Fallback to avoid crashing
@@ -62,14 +62,14 @@ const jobWorker = new Worker('JobQueue', async (job) => {
     });
 
     await container.start();
-    
+
     // Wait for the container to finish running the commands
     const result = await container.wait();
-    
+
     // Fetch the raw logs
     const logBuffer = await container.logs({ stdout: true, stderr: true });
     const logs = logBuffer.toString('utf-8');
-    
+
     console.log(`[JobWorker] Tests finished with exit code ${result.StatusCode}`);
 
     // If exit code is not 0, the tests failed.
